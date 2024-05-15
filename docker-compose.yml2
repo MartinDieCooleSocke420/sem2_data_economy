@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  mongo:
+    image: mongo:4.4
+    command: --nojournal
+    container_name: mongo
+    ports:
+      - "27020:27017"
+    networks:
+      - orion-network
+
+  orion:
+    image: fiware/orion
+    container_name: orion
+    ports:
+      - "1026:1026"
+    command: -dbhost mongo
+    depends_on:
+      - mongo
+    networks:
+      - orion-network
+
+networks:
+  orion-network:
+    driver: bridge

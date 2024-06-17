@@ -1,14 +1,10 @@
-# Use an official Python runtime as a parent image
-FROM python:3.8-slim-buster
+FROM python:3.9-slim
 
-# Set the working directory in the container to /app
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir requests
+COPY parking_simulation.py .
 
-# Run parking_simulator.py when the container launches
-CMD ["python", "./parking_simulator.py"]
+CMD ["python", "parking_simulation.py"]

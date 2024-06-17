@@ -1,62 +1,31 @@
-version: "3.8"
+version: '3.8'
 
 services:
-  broker:
-    image: fiware/orion-ld
-    platform: linux/amd64
-    hostname: orion
-    command:
-      - "-dbhost"
-      - mongo
+  context_broker:
+    image: fiware/orion:latest
     ports:
       - "1026:1026"
-    depends_on:
-      - mongo
-      - quantumleap
-    networks:
-      - fiware_part1
-  mongo:
-    image: mongo:4.2
+    command: -dbhost mongo-db
+
+  mongo-db:
+    image: mongo:4.4
     ports:
       - "27017:27017"
-    networks:
-      - fiware_part1
-  crate-db:
-    image: amd64/crate:4.1.4
-    hostname: crate-db
-    ports:
-      - "4200:4200"
-      - "4300:4300"
-    command:
-      crate -Cauth.host_based.enabled=false  -Ccluster.name=democluster -Chttp.cors.enabled=true
-      -Chttp.cors.allow-origin="*"
-    environment:
-      - CRATE_HEAP_SIZE=2g
-    networks:
-      - fiware_part1
+
   quantumleap:
-    image: orchestracities/quantumleap
-    hostname: quantumleap
+    image: fiware/quantumleap:latest
     ports:
       - "8668:8668"
-    depends_on:
-      - crate-db
     environment:
       - CRATE_HOST=crate-db
-      - LOGLEVEL=DEBUG
-    healthcheck:
-      test: curl --fails -s http://quantumleap:8668/version || exit 1
-    networks:
-      - fiware_part1
-  grafana:
-    image: grafana/grafana
-    depends_on:
-      - crate-db
+
+  crate-db:
+    image: crate:latest
     ports:
-      - "3003:3000"
-    networks:
-      - fiware_part1
-    environment:
-      - GF_INSTALL_PLUGINS=https://github.com/orchestracities/map-panel/releases/download/v1.4.4/orchestracities-map-panel-1.4.4.zip;grafana-clock-panel,grafana-worldmap-panel
-networks:
-  fiware_part1: {}
+      - "4200:4200"
+      - "5432:5432"
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"

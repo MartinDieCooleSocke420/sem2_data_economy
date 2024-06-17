@@ -1,44 +1,45 @@
-import os
 import requests
 import json
 import time
+import random
 
-# Configuration
-ORION_URL = "http://orion:1026/v2/entities"
-API_KEY = "5ffdb0ee1227cfcae4c747025b6e73b6"
-CITY_ID = "2891122"  # Use OpenWeatherMap city ID
-UNIT = "metric"  # Use "metric" for Celsius
+url = 'http://localhost:1026/ngsi-ld/v1/entities/'
 
-def fetch_weather_data():
-    url = f"http://api.openweathermap.org/data/2.5/weather?id={CITY_ID}&appid={API_KEY}&units={UNIT}"
-    response = requests.get(url)
-    data = response.json()
-    return data
+headers = {
+    'Content-Type': 'application/json',
+    'Link': '<https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"'
+}
 
-def send_to_orion(data):
-    headers = {
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "id": "WeatherData",
-        "type": "Weather",
-        "temperature": {
-            "value": data["main"]["temp"],
-            "type": "Number"
-        },
-        "humidity": {
-            "value": data["main"]["humidity"],
-            "type": "Number"
+water_measurement = {
+    "id": "urn:ngsi-ld:WaterMeasurement:001",
+    "type": "WaterMeasurement",
+    "temperature": {
+        "type": "Property",
+        "value": 0.0
+    },
+    "pH": {
+        "type": "Property",
+        "value": 7.0
+    },
+    "location": {
+        "type": "GeoProperty",
+        "value": {
+            "type": "Point",
+            "coordinates": [8.6842, 50.1127]
         }
     }
-    response = requests.post(ORION_URL, headers=headers, data=json.dumps(payload))
-    print(response.text)
+}
 
-def main():
+def generate_random_data():
+    water_measurement['temperature']['value'] = round(random.uniform(10, 25), 2)
+    water_measurement['pH']['value'] = round(random.uniform(6.5, 8.5), 2)
+    response = requests.post(url, data=json.dumps(water_measurement), headers=headers)
+    print(response.status_code, response.text)
+
+def simulate_water_measurements():
     while True:
-        weather_data = fetch_weather_data()
-        send_to_orion(weather_data)
-        time.sleep(300)  # Sleep for 5 minutes (300 seconds)
+        generate_random_data()
+        time.sleep(5)
 
 if __name__ == "__main__":
-    main()
+    simulate_water_measurements()

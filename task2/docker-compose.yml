@@ -1,14 +1,19 @@
+version: '3'
+
 services:
   context_broker:
     image: fiware/orion:latest
     ports:
       - "1026:1026"
-    command: -dbURI mongodb://mongo-db:27017
+    command: -dbURI mongodb://admin:admin@mongo-db:27017
 
   mongo-db:
     image: mongo:4.4
     ports:
       - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
 
   quantumleap:
     image: smartsdk/quantumleap:latest
@@ -27,6 +32,8 @@ services:
     image: grafana/grafana:latest
     ports:
       - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
 
   mongo-express:
     image: mongo-express:latest
@@ -36,5 +43,8 @@ services:
       - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
       - ME_CONFIG_MONGODB_ADMINPASSWORD=admin
       - ME_CONFIG_MONGODB_SERVER=mongo-db
-      - ME_CONFIG_BASICAUTH_USERNAME=
-      - ME_CONFIG_BASICAUTH_PASSWORD=
+      - ME_CONFIG_BASICAUTH=false
+
+volumes:
+  grafana-storage:
+    driver: local

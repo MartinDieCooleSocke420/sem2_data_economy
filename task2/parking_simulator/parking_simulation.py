@@ -2,7 +2,7 @@ import requests
 import json
 import time
 
-url = 'http://localhost:1026/ngsi-ld/v1/entities/'
+url = 'http://context_broker:1026/ngsi-ld/v1/entities/'
 
 headers = {
     'Content-Type': 'application/json',
@@ -28,8 +28,11 @@ parking_spots = {
 def simulate_parking():
     while True:
         parking_spots['status']['value'] = 'free' if parking_spots['status']['value'] == 'occupied' else 'occupied'
-        response = requests.post(url, data=json.dumps(parking_spots), headers=headers)
-        print(response.status_code, response.text)
+        try:
+            response = requests.post(url, data=json.dumps(parking_spots), headers=headers)
+            print(response.status_code, response.text)
+        except Exception as e:
+            print(f"Error connecting to {url}: {e}")
         time.sleep(5)
 
 if __name__ == "__main__":

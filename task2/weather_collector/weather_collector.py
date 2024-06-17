@@ -3,7 +3,7 @@ import json
 import time
 import random
 
-url = 'http://localhost:1026/ngsi-ld/v1/entities/'
+url = 'http://context_broker:1026/ngsi-ld/v1/entities/'  # Use service name instead of localhost
 
 headers = {
     'Content-Type': 'application/json',
@@ -33,8 +33,11 @@ water_measurement = {
 def generate_random_data():
     water_measurement['temperature']['value'] = round(random.uniform(10, 25), 2)
     water_measurement['pH']['value'] = round(random.uniform(6.5, 8.5), 2)
-    response = requests.post(url, data=json.dumps(water_measurement), headers=headers)
-    print(response.status_code, response.text)
+    try:
+        response = requests.post(url, data=json.dumps(water_measurement), headers=headers)
+        print(response.status_code, response.text)
+    except Exception as e:
+        print(f"Error connecting to {url}: {e}")
 
 def simulate_water_measurements():
     while True:

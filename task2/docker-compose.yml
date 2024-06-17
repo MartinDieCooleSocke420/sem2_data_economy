@@ -3,7 +3,7 @@ services:
     image: fiware/orion:latest
     ports:
       - "1026:1026"
-    command: -dbhost mongo-db
+    command: -dbURI mongodb://mongo-db:27017
 
   mongo-db:
     image: mongo:4.4

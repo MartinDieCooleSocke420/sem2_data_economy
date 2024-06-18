@@ -5,6 +5,6 @@ WORKDIR /app
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
-COPY weather_collector.py .
+COPY water_simulator.py .
 
-CMD ["python", "weather_collector.py"]
+CMD ["python", "water_simulator.py"]

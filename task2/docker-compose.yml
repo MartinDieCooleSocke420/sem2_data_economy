@@ -1,50 +1,88 @@
-version: '3'
+version: "3.8"
 
 services:
-  context_broker:
-    image: fiware/orion:latest
+  broker:
+    image: fiware/orion-ld
+    platform: linux/amd64
+    hostname: orion
+    command:
+      - "-dbhost"
+      - mongo
     ports:
       - "1026:1026"
-    command: -dbURI mongodb://admin:admin@mongo-db:27017
-
-  mongo-db:
-    image: mongo:4.4
+    depends_on:
+      - mongo
+      - quantumleap
+    networks:
+      - fiware_part1
+  mongo:
+    image: mongo:4.2
     ports:
       - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: admin
-
-  quantumleap:
-    image: smartsdk/quantumleap:latest
-    ports:
-      - "8668:8668"
-    environment:
-      - CRATE_HOST=crate-db
-
+    networks:
+      - fiware_part1
   crate-db:
-    image: crate:latest
+    image: amd64/crate:4.1.4
+    hostname: crate-db
     ports:
       - "4200:4200"
-      - "5432:5432"
-
-  grafana:
-    image: grafana/grafana:latest
-    ports:
-      - "3000:3000"
-    volumes:
-      - grafana-storage:/var/lib/grafana
-
-  mongo-express:
-    image: mongo-express:latest
-    ports:
-      - "8081:8081"
+      - "4300:4300"
+    command:
+      crate -Cauth.host_based.enabled=false  -Ccluster.name=democluster -Chttp.cors.enabled=true
+      -Chttp.cors.allow-origin="*"
     environment:
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=admin
-      - ME_CONFIG_MONGODB_SERVER=mongo-db
-      - ME_CONFIG_BASICAUTH=false
-
-volumes:
-  grafana-storage:
-    driver: local
+      - CRATE_HEAP_SIZE=2g
+    networks:
+      - fiware_part1
+  quantumleap:
+    image: orchestracities/quantumleap
+    hostname: quantumleap
+    ports:
+      - "8668:8668"
+    depends_on:
+      - crate-db
+    environment:
+      - CRATE_HOST=crate-db
+      - LOGLEVEL=DEBUG
+    healthcheck:
+      test: curl --fails -s http://quantumleap:8668/version || exit 1
+    networks:
+      - fiware_part1
+  parking_simulation:
+    build: ./parking_simulation
+    environment:
+      - BROKER_HOSTNAME=orion
+    depends_on:
+      - broker
+    networks:
+      - fiware_part1
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+  water_simulation:
+    build: ./water_simulation
+    environment:
+      - BROKER_HOSTNAME=orion
+    depends_on:
+      - broker
+    networks:
+      - fiware_part1
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+  grafana:
+    image: grafana/grafana
+    depends_on:
+      - crate-db
+    ports:
+      - "3003:3000"
+    networks:
+      - fiware_part1
+    environment:
+      - GF_INSTALL_PLUGINS=https://github.com/orchestracities/map-panel/releases/download/v1.4.4/orchestracities-map-panel-1.4.4.zip;grafana-clock-panel,grafana-worldmap-panel
+networks:
+  fiware_part1: {}

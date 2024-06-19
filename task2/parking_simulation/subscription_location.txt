@@ -1,1 +1,0 @@
-/ngsi-ld/v1/subscriptions/urn:ngsi-ld:Subscription:810c6c18-1f38-11ef-8682-0242ac150004

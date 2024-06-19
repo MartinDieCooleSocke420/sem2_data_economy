@@ -16,7 +16,7 @@ offStreetParking = {
     "address": {
         "type": "Property",
         "value": {
-            "streetAddress": "Scharweg 14, 24149 Kiel",
+            "streetAddress": "Alte Eichen 6, 24113 Kiel",
             "addressLocality": "Kiel",
             "addressCountry": "Germany",
         },
